@@ -10,4 +10,4 @@ if "%IMG_PATH%"=="" (
 )
 
 :: Run the Python script with the value from latest.txt
-python.exe .\__INIT__.py --img_path "%IMG_PATH%"
+python.exe .\__init__.py --img_path "%IMG_PATH%"
