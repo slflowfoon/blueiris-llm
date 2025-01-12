@@ -15,7 +15,7 @@ The way that I run this is by placing the following 2 files in a folder named af
 1. In Blue Iris, create the following action on alert:
   * **Action:** `Write to file--replace`
   * **File:** `C:\Users\MyUser\Documents\Blue Iris\Driveway\latest.txt`
-  * **Parameters:** `D:\Alerts\&ALERT_PATH`
+  * **Parameters:** `D:\Your\Alert\Images\Directory\&ALERT_PATH`
   * **Camera:** Choose the camera your are setting up
 
 2. Create another action on alert:
