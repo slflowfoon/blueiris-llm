@@ -16,7 +16,7 @@ The way that I run this is by placing the following 2 files in a folder named af
   * **Action:** `Write to file--replace`
   * **File:** `C:\Users\MyUser\Documents\Blue Iris\Driveway\latest.txt`
   * **Parameters:** `D:\Your\Alert\Images\Directory\&ALERT_PATH`
-  * **Camera:** Choose the camera your are setting up
+  * **Camera:** Choose the camera your are setting up, for example, `Driveway`
 
 2. Create another action on alert:
   * **Action:** Run program/script
