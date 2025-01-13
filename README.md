@@ -6,7 +6,7 @@
 3. After the LLM responds, the Python script extracts the response from the JSON to `response.txt`
 4. Blue Iris then sends the response in the body of the notification by using the additional special macros
 
-----
+## Installation
 
 The way that I run this is by placing the following 2 files in a folder named after the camera, for example, `C:\Users\MyUser\Documents\Blue Iris\Driveway\`:
   * `__init__.py`
@@ -39,5 +39,9 @@ The way that I run this is by placing the following 2 files in a folder named af
    * `file://C:\Users\MyUser\Documents\Blue Iris\Driveway\response.txt`
      
 ![](https://github.com/slflowfoon/blueiris-llm/blob/main/images/Macro%20Settings.png?raw=true)
+
+## Debugging
+
+Logs are saved in the same directory as the `.bat` script under `logs.txt`
 
 ----
