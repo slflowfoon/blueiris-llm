@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 import base64
 import json
@@ -35,7 +37,7 @@ def send_image_to_gemini(encoded_image):
         "contents": [
             {
                 "parts": [
-                    {"text": "The object bound in the orange box has triggered the CCTV. Describe the scene in 120 characters. Do not mention time or date."},
+                    {"text": "The object bound in the orange box has triggered the CCTV. Analyze and describe the scene in 120 characters."},
                     {
                         "inline_data": {
                             "mime_type": "image/jpeg",
