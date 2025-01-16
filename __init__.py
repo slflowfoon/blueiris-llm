@@ -5,13 +5,17 @@ import base64
 import json
 import logging
 import requests
+import os
 from pathlib import Path
+from datetime import datetime, timedelta
 
 # Constants
 API_KEY = "GEMINI_API_KEY"  # Replace with your actual API key
 URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={API_KEY}"
-OUTPUT_RESPONSE_FILE = "response.txt"
-LOG_FILE = "logs.txt"
+OUTPUT_RESPONSE_FILE = "response.log"
+LOG_FILE = "blueiris-llm.log"
+LOG_RETENTION_DAYS = 30  # Keep logs for 30 days
+
 
 # Configure logging
 logging.basicConfig(filename=LOG_FILE, level=logging.INFO, 
@@ -75,6 +79,23 @@ def save_response_to_file(response, output_file):
         logging.error(f"Error saving response to file: {e}")
         raise
 
+def delete_old_logs(log_file, retention_days):
+    """Deletes log files older than the specified retention period."""
+    cutoff_date = datetime.now() - timedelta(days=retention_days)
+    
+    try:
+        log_file_path = Path(log_file)
+        if log_file_path.is_file():
+            file_modified_time = datetime.fromtimestamp(log_file_path.stat().st_mtime)
+            if file_modified_time < cutoff_date:
+                os.remove(log_file)
+                logging.info(f"Deleted old log file: {log_file}")
+        else:
+            logging.warning(f"Log file not found at {log_file}")
+    except Exception as e:
+        logging.error(f"Error deleting old log file: {e}")
+
+
 def main(img_path):
     """Main function to send an image to Gemini 1.5 Pro and log the response."""
     try:
@@ -93,6 +114,9 @@ def main(img_path):
         
         # Save the response to a text file
         save_response_to_file(response, OUTPUT_RESPONSE_FILE)
+
+        # Delete old logs if applicable
+        delete_old_logs(LOG_FILE, LOG_RETENTION_DAYS)
         
         print(f"Response saved to {OUTPUT_RESPONSE_FILE}. Check {LOG_FILE} for details.")
     except Exception as e:
