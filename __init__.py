@@ -49,9 +49,14 @@ def send_image_to_gemini(encoded_image):
             }
         ]
     }
-    
+
     try:
         response = requests.post(URL, headers=headers, json=data)
+        if response.status_code == 429:
+            with open(OUTPUT_RESPONSE_FILE, "w") as file:
+                file.write("429 error: Quote limit reached.")
+            logging.warning("Received 429 error: Quote limit reached.")
+            return None
         response.raise_for_status()
         logging.info(f"Request sent to {MODEL} successfully.")
         return response.json()
@@ -61,6 +66,9 @@ def send_image_to_gemini(encoded_image):
 
 def save_response_to_file(response, output_file):
     try:
+        if response is None:
+            return
+        
         text_value = response["candidates"][0]["content"]["parts"][0]["text"]
         
         with open(output_file, "w") as file:
@@ -110,8 +118,8 @@ def main(img_path):
         print(f"An error occurred. Check {LOG_FILE} for details.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Send a JPEG image to Gemini for scene description.")
-    parser.add_argument("--img_path", required=True, help="Path to the JPEG image file.")
+    parser = argparse.ArgumentParser(description="Send a JPEG image to Gemini for analysing.")
+    parser.add_argument("--img_path", required=True, help="Path to the alert image file.")
     args = parser.parse_args()
 
     main(args.img_path)
