@@ -16,7 +16,7 @@ Place the following file in a folder named after the camera, for example, `C:\Us
    * **Action:** `Run program/script`
    * **File:** `C:\Users\MyUser\Documents\Blue Iris\Driveway\__init__.py`
    * **Parameters:** `--img_path "D:\Directory\Where\Alert\Images\Are\Saved\&ALERT_PATH"`
-   * **Camera:** Choose the camera your are setting up, for example, `Driveway`
+   * **Camera:** Choose the camera you are setting up, for example, `Driveway`
      
 <p align="center"><img src="https://github.com/slflowfoon/blueiris-llm/blob/main/images/Notification%201.png?raw=true" width=500 /></p>
 
