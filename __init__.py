@@ -54,8 +54,8 @@ def send_image_to_gemini(encoded_image):
         response = requests.post(URL, headers=headers, json=data)
         if response.status_code == 429:
             with open(OUTPUT_RESPONSE_FILE, "w") as file:
-                file.write("429 error: Quote limit reached.")
-            logging.warning("Received 429 error: Quote limit reached.")
+                file.write("429 error: Quota limit reached.")
+            logging.warning("Received 429 error: Quota limit reached.")
             return None
         response.raise_for_status()
         logging.info(f"Request sent to {MODEL} successfully.")
