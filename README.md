@@ -2,6 +2,11 @@
 
 Python script to send a base64 alert image to Gemini and then using the response for the notification body.
 
+## Prerequisites
+
+Install the requirements  
+`pip install -r requirements.txt`
+
 ## Step 1: Installation
 
 Place the following file in a folder named after the camera, for example, `C:\Users\MyUser\Documents\Blue Iris\Driveway\`:
