@@ -15,7 +15,7 @@ URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generate
 OUTPUT_RESPONSE_FILE = "response.log"
 LOG_FILE = "blueiris-llm.log"
 LOG_RETENTION_DAYS = 30  # Keep logs for 30 days
-AI_PROMPT = "Describe the objects in the scene"
+AI_PROMPT = 'Describe the objects in the scene'
 
 logging.basicConfig(filename=LOG_FILE, level=logging.INFO, 
                     format="%(asctime)s - %(levelname)s - %(message)s")
@@ -34,11 +34,12 @@ def send_image_to_gemini(encoded_image):
     headers = {
         "Content-Type": "application/json"
     }
+    escaped_prompt = json.dumps(AI_PROMPT)
     data = {
         "contents": [
             {
                 "parts": [
-                    {"text": AI_PROMPT},
+                    {"text": json.loads(escaped_prompt)},
                     {
                         "inline_data": {
                             "mime_type": "image/jpeg",
