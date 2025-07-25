@@ -9,15 +9,23 @@ import os
 from pathlib import Path
 from datetime import datetime, timedelta
 
-API_KEY = "GEMINI_API_KEY"  # Replace with your actual API key
-MODEL = "gemini-1.5-pro"
-URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={API_KEY}"
+# Constants for Gemini AI
+API_KEY = "GEMINI_API_KEY"  # Replace with your actual API key for Gemini
+MODEL = "gemini-2.0-flash-lite"
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={API_KEY}"
+AI_PROMPT = "Describe the objects in the scene"
+
+# Constants for Telegram
+TELEGRAM_BOT_TOKEN = "REPLACE_WITH_BOT_API_KEY"  # Replace with your actual Telegram Bot API Key
+CHAT_ID = "REPLACE_WITH_CHAT_ID"  # Replace with your actual Telegram Chat ID
+TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
+
+# File paths and logging
 OUTPUT_RESPONSE_FILE = "response.log"
 LOG_FILE = "blueiris-llm.log"
 LOG_RETENTION_DAYS = 30  # Keep logs for 30 days
-AI_PROMPT = 'Describe the objects in the scene'
 
-logging.basicConfig(filename=LOG_FILE, level=logging.INFO, 
+logging.basicConfig(filename=LOG_FILE, level=logging.INFO,
                     format="%(asctime)s - %(levelname)s - %(message)s")
 
 def convert_image_to_base64(image_path):
@@ -34,12 +42,11 @@ def send_image_to_gemini(encoded_image):
     headers = {
         "Content-Type": "application/json"
     }
-    escaped_prompt = json.dumps(AI_PROMPT)
     data = {
         "contents": [
             {
                 "parts": [
-                    {"text": json.loads(escaped_prompt)},
+                    {"text": AI_PROMPT},
                     {
                         "inline_data": {
                             "mime_type": "image/jpeg",
@@ -52,7 +59,7 @@ def send_image_to_gemini(encoded_image):
     }
 
     try:
-        response = requests.post(URL, headers=headers, json=data)
+        response = requests.post(GEMINI_URL, headers=headers, json=data)
         if response.status_code == 429:
             with open(OUTPUT_RESPONSE_FILE, "w") as file:
                 file.write("429 error: Quota limit reached.")
@@ -68,19 +75,42 @@ def send_image_to_gemini(encoded_image):
 def save_response_to_file(response, output_file):
     try:
         if response is None:
-            return
+            logging.warning("No response from Gemini to save.")
+            return None
         
         text_value = response["candidates"][0]["content"]["parts"][0]["text"]
         
         with open(output_file, "w") as file:
             file.write(text_value)
             logging.info(f"Extracted text saved to {output_file}.")
+        return text_value
     except KeyError as e:
         logging.error(f"KeyError while extracting text: {e}")
         raise
     except Exception as e:
         logging.error(f"Error saving response to file: {e}")
         raise
+
+def send_telegram_message_and_photo(api_url, chat_id, text_response, img_path):
+    try:
+        if not Path(img_path).is_file():
+            logging.error(f"Telegram: Image file not found at {img_path}")
+            return False
+
+        files = {'photo': open(img_path, 'rb')}
+        data = {'chat_id': chat_id, 'caption': text_response}
+
+        response = requests.post(api_url, files=files, data=data)
+        response.raise_for_status()
+
+        logging.info("Telegram: Message and Photo sent successfully.")
+        return True
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Telegram: Error sending message and photo: {e}")
+        return False
+    except Exception as e:
+        logging.error(f"Telegram: An unexpected error has occurred: {e}")
+        return False
 
 def delete_old_logs(log_file, retention_days):
     cutoff_date = datetime.now() - timedelta(days=retention_days)
@@ -97,7 +127,7 @@ def delete_old_logs(log_file, retention_days):
     except Exception as e:
         logging.error(f"Error deleting old log file: {e}")
 
-def main(img_path):
+def main(img_path, send_to_telegram):
     try:
         image_path = Path(img_path)
         if not image_path.is_file():
@@ -107,20 +137,27 @@ def main(img_path):
         
         encoded_image = convert_image_to_base64(image_path)
         
-        response = send_image_to_gemini(encoded_image)
+        response_json = send_image_to_gemini(encoded_image)
         
-        save_response_to_file(response, OUTPUT_RESPONSE_FILE)
+        extracted_text = save_response_to_file(response_json, OUTPUT_RESPONSE_FILE)
+
+        if send_to_telegram and extracted_text:
+            logging.info("Attempting to send message and photo to Telegram.")
+            send_telegram_message_and_photo(TELEGRAM_API_URL, CHAT_ID, extracted_text, img_path)
+        elif send_to_telegram and not extracted_text:
+            logging.warning("Telegram sending skipped: No text response was extracted from Gemini.")
 
         delete_old_logs(LOG_FILE, LOG_RETENTION_DAYS)
         
-        print(f"Response saved to {OUTPUT_RESPONSE_FILE}. Check {LOG_FILE} for details.")
+        print(f"Processing complete. Response saved to {OUTPUT_RESPONSE_FILE}. Check {LOG_FILE} for details.")
     except Exception as e:
-        logging.error(f"Unexpected error: {e}")
+        logging.error(f"Unexpected error in main: {e}")
         print(f"An error occurred. Check {LOG_FILE} for details.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Send a JPEG image to Gemini for analysing.")
-    parser.add_argument("--img_path", required=True, help="Path to the alert image file.")
+    parser = argparse.ArgumentParser(description="Send a JPEG image to Gemini for scene description and optionally to Telegram.")
+    parser.add_argument("--img_path", required=True, help="Path to the JPEG image file.")
+    parser.add_argument("--telegram", action="store_true", help="Send notification to Telegram.")
     args = parser.parse_args()
 
-    main(args.img_path)
+    main(args.img_path, args.telegram)
